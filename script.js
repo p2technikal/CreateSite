@@ -2,13 +2,6 @@ const root = document.documentElement;
 const themeToggle = document.querySelector(".theme-toggle");
 const localTime = document.querySelector("#local-time");
 const currentYear = document.querySelector("#current-year");
-const blogCarousel = document.querySelector("#blog-carousel");
-const blogViewport = document.querySelector("#blog-viewport");
-const blogTrack = document.querySelector("#blog-track");
-const blogStatus = document.querySelector("#blog-status");
-const blogPagination = document.querySelector("#blog-pagination");
-const blogPrevious = document.querySelector("#blog-previous");
-const blogNext = document.querySelector("#blog-next");
 const savedTheme = window.localStorage.getItem("theme");
 const blogDateFormatter = new Intl.DateTimeFormat("en-AU", {
   timeZone: "Australia/Melbourne",
@@ -17,11 +10,75 @@ const blogDateFormatter = new Intl.DateTimeFormat("en-AU", {
   year: "numeric",
 });
 
-let blogPosts = [];
-let activeBlogIndex = 0;
-let paginationMaxIndex = -1;
+const blogCarousel = createCarousel("blog", "blog post");
+const techieCarousel = createCarousel("techie", "technical article");
 let blogResizeFrame = 0;
-let blogLayoutVisibleSlides = 0;
+const techiePosts = [
+  {
+    title: "Growing concern of Shoplifting in retail industry",
+    url: "https://www.linkedin.com/pulse/growing-concern-shoplifting-retail-industry-pranit-prakash/",
+    excerpt:
+      "An exploration of rising retail theft, its impact on Australian retailers, and the role of technology and security.",
+    category: "Retail technology",
+    source: "LinkedIn Pulse",
+  },
+  {
+    title: "SaaS Is Changing the Realm of Architecture",
+    url: "https://www.linkedin.com/pulse/saas-changing-realm-architecture-pranit-prakash/",
+    excerpt:
+      "How the shift to SaaS and best-of-breed products is changing the role of enterprise architecture.",
+    category: "Architecture",
+    source: "LinkedIn Pulse",
+  },
+  {
+    title: "Derivation of Integration",
+    url: "https://www.linkedin.com/pulse/derivation-integration-pranit-prakash/",
+    excerpt:
+      "Key questions and considerations for deriving integration requirements across enterprise systems.",
+    category: "Integration",
+    source: "LinkedIn Pulse",
+  },
+  {
+    title: "Integrating End-points with Agent-based Deployment",
+    url: "https://www.linkedin.com/pulse/integrating-end-points-agent-based-deployment-pranit-prakash/",
+    excerpt:
+      "Thoughts on endpoint integration and agent-based deployment approaches.",
+    category: "Deployment",
+    source: "LinkedIn Pulse",
+  },
+  {
+    title: "Aiming for DevOps in ServiceNow",
+    url: "https://www.linkedin.com/pulse/aiming-devops-servicenow-pranit-prakash/",
+    excerpt:
+      "A practical look at the tools, integrations, and automation that support DevOps for ServiceNow.",
+    category: "DevOps",
+    source: "LinkedIn Pulse",
+  },
+  {
+    title: "Towards Enterprise Service Management",
+    url: "https://www.linkedin.com/pulse/towards-enterprise-service-management-pranit-prakash/",
+    excerpt:
+      "Applying service-management practices across business functions with shared services and processes.",
+    category: "Service management",
+    source: "LinkedIn Pulse",
+  },
+  {
+    title: "Oops! Can We Limit SLAs to Mere Metrics?",
+    url: "https://www.linkedin.com/pulse/oops-can-limit-slas-mere-metrics-pranit-prakash/",
+    excerpt:
+      "Why effective SLAs need governance, ownership, and meaningful outcomes—not just targets and measurements.",
+    category: "Service management",
+    source: "LinkedIn Pulse",
+  },
+  {
+    title: "Importance of a Single Source of Truth",
+    url: "https://www.linkedin.com/pulse/importance-single-source-truth-pranit-prakash/",
+    excerpt:
+      "Why consistent, reconciled information across connected systems matters to sound IT architecture.",
+    category: "Architecture",
+    source: "LinkedIn Pulse",
+  },
+];
 
 if (savedTheme === "light" || savedTheme === "dark") {
   root.dataset.theme = savedTheme;
@@ -48,7 +105,24 @@ function updateLocalTime() {
   localTime.textContent = time + " in Melbourne";
 }
 
-function visibleBlogSlides() {
+function createCarousel(id, itemLabel) {
+  return {
+    itemLabel,
+    container: document.querySelector(`#${id}-carousel`),
+    viewport: document.querySelector(`#${id}-viewport`),
+    track: document.querySelector(`#${id}-track`),
+    status: document.querySelector(`#${id}-status`),
+    pagination: document.querySelector(`#${id}-pagination`),
+    previous: document.querySelector(`#${id}-previous`),
+    next: document.querySelector(`#${id}-next`),
+    posts: [],
+    activeIndex: 0,
+    paginationMaxIndex: -1,
+    layoutVisibleSlides: 0,
+  };
+}
+
+function visibleCarouselSlides() {
   if (window.matchMedia("(max-width: 560px)").matches) {
     return 1;
   }
@@ -60,17 +134,17 @@ function visibleBlogSlides() {
   return 3;
 }
 
-function maximumBlogIndex() {
-  return Math.max(0, blogPosts.length - visibleBlogSlides());
+function maximumCarouselIndex(carousel) {
+  return Math.max(0, carousel.posts.length - visibleCarouselSlides());
 }
 
-function updateBlogSlideLayout() {
-  const visibleSlides = visibleBlogSlides();
-  if (visibleSlides === blogLayoutVisibleSlides) {
+function updateCarouselSlideLayout(carousel) {
+  const visibleSlides = visibleCarouselSlides();
+  if (visibleSlides === carousel.layoutVisibleSlides) {
     return;
   }
 
-  blogLayoutVisibleSlides = visibleSlides;
+  carousel.layoutVisibleSlides = visibleSlides;
   const basis =
     visibleSlides === 1
       ? "100%"
@@ -78,7 +152,7 @@ function updateBlogSlideLayout() {
         ? "calc((100% - 16px) / 2)"
         : "calc((100% - 32px) / 3)";
 
-  for (const slide of blogTrack.children) {
+  for (const slide of carousel.track.children) {
     slide.style.flexBasis = basis;
   }
 }
@@ -92,11 +166,11 @@ function plainText(html) {
   return decoder.value.replace(/\s+/g, " ").trim();
 }
 
-function makeBlogCard(post, index) {
+function makeBlogCard(post, index, totalPosts) {
   const item = document.createElement("li");
   item.className = "blog-slide";
   item.setAttribute("aria-roledescription", "slide");
-  item.setAttribute("aria-label", `${index + 1} of ${blogPosts.length}`);
+  item.setAttribute("aria-label", `${index + 1} of ${totalPosts}`);
 
   const link = document.createElement("a");
   link.className = "blog-card";
@@ -121,10 +195,14 @@ function makeBlogCard(post, index) {
   const body = document.createElement("div");
   body.className = "blog-card-body";
 
-  const date = document.createElement("time");
+  const date = post.publishedAt ? document.createElement("time") : document.createElement("span");
   date.className = "blog-card-date";
-  date.dateTime = post.publishedAt;
-  date.textContent = blogDateFormatter.format(new Date(post.publishedAt));
+  if (post.publishedAt) {
+    date.dateTime = post.publishedAt;
+    date.textContent = blogDateFormatter.format(new Date(post.publishedAt));
+  } else {
+    date.textContent = post.source;
+  }
 
   const title = document.createElement("h3");
   title.className = "blog-card-title";
@@ -144,83 +222,91 @@ function makeBlogCard(post, index) {
   return item;
 }
 
-function goToBlogPost(index) {
-  const maximum = maximumBlogIndex();
+function goToCarouselPost(carousel, index) {
+  const maximum = maximumCarouselIndex(carousel);
   if (maximum === 0) {
     return;
   }
 
   const target = (index + maximum + 1) % (maximum + 1);
-  const firstSlide = blogTrack.querySelector(".blog-slide");
-  const slideGap = Number.parseFloat(window.getComputedStyle(blogTrack).columnGap) || 0;
+  const firstSlide = carousel.track.querySelector(".blog-slide");
+  const slideGap = Number.parseFloat(window.getComputedStyle(carousel.track).columnGap) || 0;
   const stride = firstSlide.getBoundingClientRect().width + slideGap;
   if (!Number.isFinite(stride) || stride <= 0) {
     return;
   }
   const targetScrollLeft = target * stride;
 
-  if (Math.abs(blogViewport.scrollLeft - targetScrollLeft) < 2) {
-    updateBlogCarousel(target);
+  if (Math.abs(carousel.viewport.scrollLeft - targetScrollLeft) < 2) {
+    updateCarousel(carousel, target);
     return;
   }
 
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  blogViewport.scrollTo({
+  carousel.viewport.scrollTo({
     left: targetScrollLeft,
     behavior: prefersReducedMotion ? "auto" : "smooth",
   });
-  updateBlogCarousel(target);
+  updateCarousel(carousel, target);
 }
 
-function updateBlogCarousel(requestedIndex) {
-  if (blogPosts.length === 0) {
+function updateCarousel(carousel, requestedIndex) {
+  if (carousel.posts.length === 0) {
     return;
   }
 
-  updateBlogSlideLayout();
-  const maximum = maximumBlogIndex();
-  const firstSlide = blogTrack.querySelector(".blog-slide");
-  const slideGap = Number.parseFloat(window.getComputedStyle(blogTrack).columnGap) || 0;
+  updateCarouselSlideLayout(carousel);
+  const maximum = maximumCarouselIndex(carousel);
+  const firstSlide = carousel.track.querySelector(".blog-slide");
+  const slideGap = Number.parseFloat(window.getComputedStyle(carousel.track).columnGap) || 0;
   const stride = firstSlide.getBoundingClientRect().width + slideGap;
   if (!Number.isFinite(stride) || stride <= 0) {
     return;
   }
 
-  activeBlogIndex =
+  carousel.activeIndex =
     requestedIndex === undefined
-      ? Math.min(maximum, Math.max(0, Math.round(blogViewport.scrollLeft / stride)))
+      ? Math.min(maximum, Math.max(0, Math.round(carousel.viewport.scrollLeft / stride)))
       : Math.min(maximum, Math.max(0, requestedIndex));
-  blogPrevious.disabled = maximum === 0;
-  blogNext.disabled = maximum === 0;
+  carousel.previous.disabled = maximum === 0;
+  carousel.next.disabled = maximum === 0;
 
-  if (paginationMaxIndex !== maximum) {
-    paginationMaxIndex = maximum;
-    blogPagination.replaceChildren();
+  if (carousel.paginationMaxIndex !== maximum) {
+    carousel.paginationMaxIndex = maximum;
+    carousel.pagination.replaceChildren();
 
     for (let index = 0; index <= maximum; index += 1) {
       const dot = document.createElement("button");
       dot.className = "blog-page-dot";
       dot.type = "button";
-      dot.addEventListener("click", () => goToBlogPost(index));
-      blogPagination.append(dot);
+      dot.setAttribute("aria-label", `Show ${carousel.itemLabel} ${index + 1}`);
+      dot.addEventListener("click", () => goToCarouselPost(carousel, index));
+      carousel.pagination.append(dot);
     }
   }
 
-  for (const [index, dot] of Array.from(blogPagination.children).entries()) {
-    dot.hidden = Math.abs(index - activeBlogIndex) > 2;
-    dot.setAttribute("aria-label", `Show blog post ${index + 1}`);
-    dot.setAttribute("aria-current", String(index === activeBlogIndex));
+  for (const [index, dot] of Array.from(carousel.pagination.children).entries()) {
+    dot.hidden = Math.abs(index - carousel.activeIndex) > 2;
+    dot.setAttribute("aria-current", String(index === carousel.activeIndex));
   }
 }
 
-function showBlogError(message) {
-  blogStatus.hidden = false;
-  blogStatus.dataset.state = "error";
-  blogStatus.textContent = message;
-  blogPrevious.disabled = true;
-  blogNext.disabled = true;
-  blogCarousel.setAttribute("aria-busy", "false");
+function renderCarousel(carousel, posts) {
+  carousel.posts = posts;
+  carousel.track.replaceChildren(...posts.map((post, index) => makeBlogCard(post, index, posts.length)));
+  carousel.container.setAttribute("aria-busy", "false");
+  carousel.status.hidden = true;
+  updateCarousel(carousel);
+}
+
+function showCarouselError(carousel, message) {
+  carousel.status.hidden = false;
+  carousel.status.dataset.state = "error";
+  carousel.status.textContent = message;
+  carousel.previous.disabled = true;
+  carousel.next.disabled = true;
+  carousel.container.setAttribute("aria-busy", "false");
 }
 
 function normalizeBlogPosts(entries) {
@@ -276,22 +362,21 @@ function loadBlogPosts() {
     const entries = payload?.feed?.entry;
     if (!Array.isArray(entries)) {
       finishRequest();
-      showBlogError("The blog feed returned an unexpected response. Visit the blog directly.");
+      showCarouselError(
+        blogCarousel,
+        "The blog feed returned an unexpected response. Visit the blog directly.",
+      );
       return;
     }
 
-    blogPosts = normalizeBlogPosts(entries);
-    if (blogPosts.length === 0) {
+    const posts = normalizeBlogPosts(entries);
+    if (posts.length === 0) {
       finishRequest();
-      showBlogError("No blog posts could be displayed. Visit the blog directly.");
+      showCarouselError(blogCarousel, "No blog posts could be displayed. Visit the blog directly.");
       return;
     }
 
-    blogTrack.replaceChildren(...blogPosts.map(makeBlogCard));
-    blogCarousel.setAttribute("aria-busy", "false");
-    blogStatus.textContent = "";
-    blogStatus.hidden = true;
-    updateBlogCarousel();
+    renderCarousel(blogCarousel, posts);
     finishRequest();
   };
 
@@ -304,13 +389,13 @@ function loadBlogPosts() {
   request.async = true;
   request.onerror = () => {
     finishRequest();
-    showBlogError("The blog feed could not be loaded. Visit the blog directly.");
+    showCarouselError(blogCarousel, "The blog feed could not be loaded. Visit the blog directly.");
   };
   request.src = feedUrl.href;
 
   const timeout = window.setTimeout(() => {
     finishRequest();
-    showBlogError("The blog feed took too long to respond. Visit the blog directly.");
+    showCarouselError(blogCarousel, "The blog feed took too long to respond. Visit the blog directly.");
   }, 15000);
 
   document.head.append(request);
@@ -323,13 +408,23 @@ themeToggle.addEventListener("click", () => {
   updateThemeLabel();
 });
 
-blogPrevious.addEventListener("click", () => goToBlogPost(activeBlogIndex - 1));
-blogNext.addEventListener("click", () => goToBlogPost(activeBlogIndex + 1));
-blogViewport.addEventListener("scroll", () => updateBlogCarousel(), { passive: true });
+for (const carousel of [blogCarousel, techieCarousel]) {
+  carousel.previous.addEventListener("click", () =>
+    goToCarouselPost(carousel, carousel.activeIndex - 1),
+  );
+  carousel.next.addEventListener("click", () =>
+    goToCarouselPost(carousel, carousel.activeIndex + 1),
+  );
+  carousel.viewport.addEventListener("scroll", () => updateCarousel(carousel), { passive: true });
+}
+
 window.addEventListener("resize", () => {
   window.cancelAnimationFrame(blogResizeFrame);
   blogResizeFrame = window.requestAnimationFrame(() => {
-    blogResizeFrame = window.requestAnimationFrame(() => updateBlogCarousel());
+    blogResizeFrame = window.requestAnimationFrame(() => {
+      updateCarousel(blogCarousel);
+      updateCarousel(techieCarousel);
+    });
   });
 });
 
@@ -337,4 +432,5 @@ currentYear.textContent = new Date().getFullYear();
 updateThemeLabel();
 updateLocalTime();
 window.setInterval(updateLocalTime, 60_000);
+renderCarousel(techieCarousel, techiePosts);
 loadBlogPosts();

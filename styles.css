@@ -293,6 +293,10 @@ h1 span {
   margin-bottom: 10px;
 }
 
+.techie-section-heading {
+  margin-top: 42px;
+}
+
 .blog-title-row {
   display: flex;
   align-items: baseline;

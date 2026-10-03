@@ -116,7 +116,7 @@
           <div class="blog-section-heading">
             <p class="eyebrow"><span class="status-dot"></span> Notes from the blog</p>
             <div class="blog-title-row">
-              <h2 id="blog-title">Recent writing</h2>
+              <h2 id="blog-title">Beyond Technology</h2>
               <a
                 class="blog-archive-link"
                 href="https://p2here.blogspot.com/"
@@ -172,6 +172,66 @@
                 Loading posts from Blogger…
               </p>
               <div class="blog-pagination" id="blog-pagination" aria-label="Choose a blog post"></div>
+            </div>
+          </div>
+
+          <div class="blog-section-heading techie-section-heading">
+            <p class="eyebrow"><span class="status-dot"></span> Technical writing</p>
+            <div class="blog-title-row">
+              <h2 id="techie-title">Technology</h2>
+            </div>
+          </div>
+
+          <div class="blog-carousel" id="techie-carousel" aria-busy="true">
+            <div class="blog-slider-row">
+              <button
+                class="blog-control blog-control-previous"
+                id="techie-previous"
+                type="button"
+                aria-label="Previous technical article"
+                aria-controls="techie-track"
+                disabled
+              >
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="m12.5 4.5-5.5 5.5 5.5 5.5" />
+                </svg>
+              </button>
+              <div
+                class="blog-viewport"
+                id="techie-viewport"
+                role="group"
+                aria-label="Technical articles"
+                aria-labelledby="techie-title"
+                tabindex="0"
+              >
+                <ul class="blog-track" id="techie-track"></ul>
+              </div>
+              <button
+                class="blog-control blog-control-next"
+                id="techie-next"
+                type="button"
+                aria-label="Next technical article"
+                aria-controls="techie-track"
+                disabled
+              >
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="m7.5 4.5 5.5 5.5-5.5 5.5" />
+                </svg>
+              </button>
+            </div>
+            <div class="blog-carousel-footer">
+              <p
+                class="blog-status"
+                id="techie-status"
+                role="status"
+                aria-live="polite"
+                hidden
+              ></p>
+              <div
+                class="blog-pagination"
+                id="techie-pagination"
+                aria-label="Choose a technical article"
+              ></div>
             </div>
           </div>
         </section>
