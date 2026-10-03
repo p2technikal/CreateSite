@@ -265,6 +265,20 @@ h1 span {
   fill: currentColor;
 }
 
+.social-link.blogger {
+  color: #ff5722;
+}
+
+.social-link.blogger:hover {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 12%, var(--surface));
+  color: #ff5722;
+}
+
+.blogger-cutout {
+  fill: var(--surface);
+}
+
 .x-social svg {
   width: 17px;
   height: 17px;
