@@ -154,6 +154,9 @@ function goToBlogPost(index) {
   const firstSlide = blogTrack.querySelector(".blog-slide");
   const slideGap = Number.parseFloat(window.getComputedStyle(blogTrack).columnGap) || 0;
   const stride = firstSlide.getBoundingClientRect().width + slideGap;
+  if (!Number.isFinite(stride) || stride <= 0) {
+    return;
+  }
   const targetScrollLeft = target * stride;
 
   if (Math.abs(blogViewport.scrollLeft - targetScrollLeft) < 2) {
@@ -180,6 +183,9 @@ function updateBlogCarousel(requestedIndex) {
   const firstSlide = blogTrack.querySelector(".blog-slide");
   const slideGap = Number.parseFloat(window.getComputedStyle(blogTrack).columnGap) || 0;
   const stride = firstSlide.getBoundingClientRect().width + slideGap;
+  if (!Number.isFinite(stride) || stride <= 0) {
+    return;
+  }
 
   activeBlogIndex =
     requestedIndex === undefined
@@ -187,7 +193,6 @@ function updateBlogCarousel(requestedIndex) {
       : Math.min(maximum, Math.max(0, requestedIndex));
   blogPrevious.disabled = maximum === 0;
   blogNext.disabled = maximum === 0;
-  blogStatus.textContent = `Post ${activeBlogIndex + 1} of ${blogPosts.length}`;
 
   if (paginationMaxIndex !== maximum) {
     paginationMaxIndex = maximum;
@@ -210,6 +215,7 @@ function updateBlogCarousel(requestedIndex) {
 }
 
 function showBlogError(message) {
+  blogStatus.hidden = false;
   blogStatus.dataset.state = "error";
   blogStatus.textContent = message;
   blogPrevious.disabled = true;
@@ -283,6 +289,8 @@ function loadBlogPosts() {
 
     blogTrack.replaceChildren(...blogPosts.map(makeBlogCard));
     blogCarousel.setAttribute("aria-busy", "false");
+    blogStatus.textContent = "";
+    blogStatus.hidden = true;
     updateBlogCarousel();
     finishRequest();
   };
@@ -317,11 +325,11 @@ themeToggle.addEventListener("click", () => {
 
 blogPrevious.addEventListener("click", () => goToBlogPost(activeBlogIndex - 1));
 blogNext.addEventListener("click", () => goToBlogPost(activeBlogIndex + 1));
-blogViewport.addEventListener("scroll", updateBlogCarousel, { passive: true });
+blogViewport.addEventListener("scroll", () => updateBlogCarousel(), { passive: true });
 window.addEventListener("resize", () => {
   window.cancelAnimationFrame(blogResizeFrame);
   blogResizeFrame = window.requestAnimationFrame(() => {
-    blogResizeFrame = window.requestAnimationFrame(updateBlogCarousel);
+    blogResizeFrame = window.requestAnimationFrame(() => updateBlogCarousel());
   });
 });
 
