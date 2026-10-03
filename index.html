@@ -112,6 +112,70 @@
           </nav>
         </section>
 
+        <section class="blog-section" aria-labelledby="blog-title">
+          <div class="blog-section-heading">
+            <p class="eyebrow"><span class="status-dot"></span> Notes from the blog</p>
+            <div class="blog-title-row">
+              <h2 id="blog-title">Recent writing</h2>
+              <a
+                class="blog-archive-link"
+                href="https://p2here.blogspot.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                All posts
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="M4 10h12m-5-5 5 5-5 5" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          <div class="blog-carousel" id="blog-carousel" aria-busy="true">
+            <div class="blog-slider-row">
+              <button
+                class="blog-control blog-control-previous"
+                id="blog-previous"
+                type="button"
+                aria-label="Previous blog post"
+                aria-controls="blog-track"
+                disabled
+              >
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="m12.5 4.5-5.5 5.5 5.5 5.5" />
+                </svg>
+              </button>
+              <div
+                class="blog-viewport"
+                id="blog-viewport"
+                role="group"
+                aria-label="Blog posts"
+                tabindex="0"
+              >
+                <ul class="blog-track" id="blog-track"></ul>
+              </div>
+              <button
+                class="blog-control blog-control-next"
+                id="blog-next"
+                type="button"
+                aria-label="Next blog post"
+                aria-controls="blog-track"
+                disabled
+              >
+                <svg viewBox="0 0 20 20" aria-hidden="true">
+                  <path d="m7.5 4.5 5.5 5.5-5.5 5.5" />
+                </svg>
+              </button>
+            </div>
+            <div class="blog-carousel-footer">
+              <p class="blog-status" id="blog-status" role="status" aria-live="polite">
+                Loading posts from Blogger…
+              </p>
+              <div class="blog-pagination" id="blog-pagination" aria-label="Choose a blog post"></div>
+            </div>
+          </div>
+        </section>
+
         <div class="divider" aria-hidden="true"><span></span></div>
 
         <section class="interests" aria-label="Interests">
